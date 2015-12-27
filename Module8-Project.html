@@ -111,17 +111,46 @@ registerDoParallel(cluter)
 control &lt;- trainControl(classProbs=TRUE,
                      savePredictions=TRUE,
                      allowParallel=TRUE)</code></pre>
-<p>Calculation of variable importance for regression and classification models</p>
+</div>
+</div>
+<div id="prediction-algorithm-selection" class="section level2">
+<h2>Prediction Algorithm Selection</h2>
+<p>Random forest being selected to solve this classification problem with following reasons:-</p>
+<ol style="list-style-type: decimal">
+<li><p>Random forest able to produce high accuratecy result.</p></li>
+<li><p>Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue using single decision tree.</p></li>
+<li><p>The default resampling scheme for the caret train function is bootstrap to reduce variance.</p></li>
+</ol>
+<div id="calculation-of-variable-importance-for-regression-and-classification-models." class="section level3">
+<h3>Calculation of variable importance for regression and classification models.</h3>
 <pre class="r"><code>modelFit &lt;- train(classe ~ ., data=train, method='rf')
-plot(varImp(modelFit), top = 20)</code></pre>
+varImpObj &lt;- varImp(modelFit)
+plot(varImpObj, top = 20)</code></pre>
+<p>Subset the dataset with the top 25% variable that best separate the outcomes</p>
+<pre class="r"><code>impThreshold &lt;- quantile(varImpObj$importance[, 1], 0.75)
+impFilter &lt;- varImpObj$importance[, 1] &gt;= impThreshold
+trainReduced &lt;- train[,impFilter]</code></pre>
 </div>
 </div>
 <div id="train-a-prediction-model" class="section level2">
 <h2>Train a prediction model</h2>
-<pre class="r"><code>modelFit &lt;- train(classe ~ ., data = train, method=&quot;rf&quot;,importance=TRUE)
-accuracy &lt;- confusionMatrix(probe$classe,  predict(modelFit, probe) )
+<pre class="r"><code>modelFit &lt;- train(classe ~ ., data = trainReduced, method=&quot;rf&quot;,importance=TRUE)
+probeReduced &lt;- probe[,impFilter]
+predictProbe &lt;- predict(modelFit, probeReduced)
+accuracy &lt;- confusionMatrix(probeReduced$classe, predictProbe )
 accuracy
 stopCluster(cluter)</code></pre>
+<div id="expectation-for-out-of-sample-error" class="section level3">
+<h3>Expectation for out-of-sample error</h3>
+<p>With selection of randowm forest as algorithm, expecting to have out of sample error less than 5%.</p>
+<p>Following code use to show the cross validation with probing dataset prepared earlier.</p>
+<pre class="r"><code># true accuracy of the predicted model
+outOfSampleErrorAccuracy &lt;- sum(predictProbe == probe$classe)/length(predictProbe)
+outOfSampleErrorAccuracy
+# out of sample error and percentage of out of sample error
+outOfSampleError &lt;- 1 - outOfSampleError.accuracy
+outOfSampleError</code></pre>
+</div>
 <div id="references" class="section level3">
 <h3>References</h3>
 <p>[1] Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers’ Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6. Read more: <a href="http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz3vVGaYaCG" class="uri">http://groupware.les.inf.puc-rio.br/har#sbia_paper_section#ixzz3vVGaYaCG</a></p>

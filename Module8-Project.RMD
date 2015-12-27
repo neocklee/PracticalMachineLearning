@@ -72,22 +72,55 @@ control <- trainControl(classProbs=TRUE,
                      savePredictions=TRUE,
                      allowParallel=TRUE)
 ```
-Calculation of variable importance for regression and classification models
+## Prediction Algorithm Selection
+
+Random forest being selected to solve this classification problem with following reasons:-
+
+1. Random forest able to produce high accuratecy result.
+
+2. Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue using single decision tree. 
+
+3. The default resampling scheme for the caret train function is bootstrap to reduce variance.
+
+### Calculation of variable importance for regression and classification models.
+
 ```{r, eval=FALSE}
 modelFit <- train(classe ~ ., data=train, method='rf')
-plot(varImp(modelFit), top = 20)
+varImpObj <- varImp(modelFit)
+plot(varImpObj, top = 20)
+```
+
+Subset the dataset with the top 25% variable that best separate the outcomes
+```{r, eval=FALSE}
+impThreshold <- quantile(varImpObj$importance[, 1], 0.75)
+impFilter <- varImpObj$importance[, 1] >= impThreshold
+trainReduced <- train[,impFilter]
 ```
 
 ## Train a prediction model
 
 ```{r, eval=FALSE}
-modelFit <- train(classe ~ ., data = train, method="rf",importance=TRUE)
-accuracy <- confusionMatrix(probe$classe,  predict(modelFit, probe) )
+modelFit <- train(classe ~ ., data = trainReduced, method="rf",importance=TRUE)
+probeReduced <- probe[,impFilter]
+predictProbe <- predict(modelFit, probeReduced)
+accuracy <- confusionMatrix(probeReduced$classe, predictProbe )
 accuracy
 stopCluster(cluter)
 ```
 
+### Expectation for out-of-sample error
+With selection of randowm forest as algorithm, expecting to have out of sample error less than 5%.
 
+Following code use to show the cross validation with probing dataset prepared earlier.
+
+```{r, eval=FALSE}
+# true accuracy of the predicted model
+outOfSampleErrorAccuracy <- sum(predictProbe == probe$classe)/length(predictProbe)
+outOfSampleErrorAccuracy
+# out of sample error and percentage of out of sample error
+outOfSampleError <- 1 - outOfSampleError.accuracy
+outOfSampleError
+```
 
 ### References
 [1] Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.
