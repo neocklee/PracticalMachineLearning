@@ -88,6 +88,7 @@ img {
 <pre><code>## Loading required package: lattice
 ## Loading required package: ggplot2</code></pre>
 <pre class="r"><code>library(ggplot2)
+setwd(&quot;C:\\leeck\\DataScience\\Module8\\project&quot;)
 dfTraining &lt;- read.csv(file=&quot;pml-training.csv&quot;,head=TRUE,sep=&quot;,&quot;)
 dfTraining$classe &lt;- as.factor(dfTraining$classe) # make it as factor variable</code></pre>
 <div id="data-preprocessing" class="section level3">
@@ -118,7 +119,7 @@ control &lt;- trainControl(classProbs=TRUE,
 <p>Random forest being selected to solve this classification problem with following reasons:-</p>
 <ol style="list-style-type: decimal">
 <li><p>Random forest able to produce high accuratecy result.</p></li>
-<li><p>Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue using single decision tree.</p></li>
+<li><p>Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue usingsingle decision tree.</p></li>
 <li><p>The default resampling scheme for the caret train function is bootstrap to reduce variance.</p></li>
 </ol>
 <div id="calculation-of-variable-importance-for-regression-and-classification-models." class="section level3">
@@ -134,12 +135,14 @@ trainReduced &lt;- train[,impFilter]</code></pre>
 </div>
 <div id="train-a-prediction-model" class="section level2">
 <h2>Train a prediction model</h2>
-<pre class="r"><code>modelFit &lt;- train(classe ~ ., data = trainReduced, method=&quot;rf&quot;,importance=TRUE)
+<pre class="r"><code>modelFitFinal &lt;- train(classe ~ ., data = trainReduced, method=&quot;rf&quot;,importance=TRUE)
+stopCluster(cluter)
+
 probeReduced &lt;- probe[,impFilter]
-predictProbe &lt;- predict(modelFit, probeReduced)
+predictProbe &lt;- predict(modelFitFinal, probeReduced)
 accuracy &lt;- confusionMatrix(probeReduced$classe, predictProbe )
-accuracy
-stopCluster(cluter)</code></pre>
+accuracy</code></pre>
+<p>The model has an overall accuracy of 0.9869, or 98.69%. In sample error rate is 1.31% ( 1-0.9869 = 0.0131 * 100).</p>
 <div id="expectation-for-out-of-sample-error" class="section level3">
 <h3>Expectation for out-of-sample error</h3>
 <p>With selection of randowm forest as algorithm, expecting to have out of sample error less than 5%.</p>
@@ -148,8 +151,9 @@ stopCluster(cluter)</code></pre>
 outOfSampleErrorAccuracy &lt;- sum(predictProbe == probe$classe)/length(predictProbe)
 outOfSampleErrorAccuracy
 # out of sample error and percentage of out of sample error
-outOfSampleError &lt;- 1 - outOfSampleError.accuracy
+outOfSampleError &lt;- 1 - outOfSampleErrorAccuracy
 outOfSampleError</code></pre>
+<p>The out-of-sample error rate is 0.0131.</p>
 </div>
 <div id="references" class="section level3">
 <h3>References</h3>

@@ -40,6 +40,7 @@ library(caret)
 
 ```r
 library(ggplot2)
+setwd("C:\\leeck\\DataScience\\Module8\\project")
 dfTraining <- read.csv(file="pml-training.csv",head=TRUE,sep=",")
 dfTraining$classe <- as.factor(dfTraining$classe) # make it as factor variable
 ```
@@ -84,7 +85,7 @@ Random forest being selected to solve this classification problem with following
 
 1. Random forest able to produce high accuratecy result.
 
-2. Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue using single decision tree. 
+2. Random Forests use averaging to find a natural balance between the two extremes to resolve bias issue usingsingle decision tree. 
 
 3. The default resampling scheme for the caret train function is bootstrap to reduce variance.
 
@@ -109,13 +110,17 @@ trainReduced <- train[,impFilter]
 
 
 ```r
-modelFit <- train(classe ~ ., data = trainReduced, method="rf",importance=TRUE)
+modelFitFinal <- train(classe ~ ., data = trainReduced, method="rf",importance=TRUE)
+stopCluster(cluter)
+
 probeReduced <- probe[,impFilter]
-predictProbe <- predict(modelFit, probeReduced)
+predictProbe <- predict(modelFitFinal, probeReduced)
 accuracy <- confusionMatrix(probeReduced$classe, predictProbe )
 accuracy
-stopCluster(cluter)
 ```
+
+The model has an overall accuracy of 0.9869, or 98.69%.
+In sample error rate is 1.31% ( 1-0.9869 = 0.0131 * 100).
 
 ### Expectation for out-of-sample error
 With selection of randowm forest as algorithm, expecting to have out of sample error less than 5%.
@@ -128,9 +133,10 @@ Following code use to show the cross validation with probing dataset prepared ea
 outOfSampleErrorAccuracy <- sum(predictProbe == probe$classe)/length(predictProbe)
 outOfSampleErrorAccuracy
 # out of sample error and percentage of out of sample error
-outOfSampleError <- 1 - outOfSampleError.accuracy
+outOfSampleError <- 1 - outOfSampleErrorAccuracy
 outOfSampleError
 ```
+The out-of-sample error rate is 0.0131.
 
 ### References
 [1] Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers' Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.
