@@ -112,20 +112,24 @@ trainReduced <- train[,impFilter]
 ```r
 modelFitFinal <- train(classe ~ ., data = trainReduced, method="rf",importance=TRUE)
 stopCluster(cluter)
-
-probeReduced <- probe[,impFilter]
-predictProbe <- predict(modelFitFinal, probeReduced)
-accuracy <- confusionMatrix(probeReduced$classe, predictProbe )
-accuracy
 ```
-
-The model has an overall accuracy of 0.9869, or 98.69%.
-In sample error rate is 1.31% ( 1-0.9869 = 0.0131 * 100).
 
 ### Expectation for out-of-sample error
 With selection of randowm forest as algorithm, expecting to have out of sample error less than 5%.
 
 Following code use to show the cross validation with probing dataset prepared earlier.
+
+
+```r
+probeReduced <- probe[,impFilter]
+predictProbe <- predict(modelFitFinal, probeReduced)
+accuracy <- confusionMatrix(probeReduced$classe, predictProbe )
+accuracy
+```
+The model has an overall accuracy of 0.9869, or 98.69%. 
+Out sample error rate is 1.31% ( 1-0.9869 = 0.0131 * 100).
+
+#### Cross validation
 
 
 ```r
